@@ -1,0 +1,6 @@
+{
+  "name": "DocuCraft PDF SaaS",
+  "description": "A premium SaaS platform for online PDF and image utilities, featuring Merge, Split, Compress, Convert, user auth, usage analytics, and subscription limits.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

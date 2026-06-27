@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: is the user logged in?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: is the current user accessing their own document?
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Helper: is the current user an admin?
+    function isAdmin() {
+      return isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.subscriptionStatus == 'admin';
+    }
+
+    // Users Collection Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allow creation if they match their auth UID
+      allow create: if isOwner(userId) && 
+                    request.resource.data.uid == userId &&
+                    request.resource.data.email == request.auth.token.email;
+                    
+      // Allow updates if they own the account or are admin.
+      // To simulate payment in this app, allow self-updating status as well.
+      allow update: if isOwner(userId) || isAdmin();
+      
+      allow delete: if isAdmin();
+
+      // Subcollection: Usage Logs
+      match /usageLogs/{logId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Global Transactions (Subscription History)
+    match /transactions/{txId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

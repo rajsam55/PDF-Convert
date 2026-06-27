@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information, SaaS subscription status, and free tier usage limit indicators.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique Firebase Auth user ID." },
+        "email": { "type": "string", "description": "User email address." },
+        "displayName": { "type": "string", "description": "User's display name." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of user account creation." },
+        "subscriptionStatus": { "type": "string", "enum": ["free", "pro", "admin"], "description": "SaaS plan access tier." },
+        "currentPeriodEnd": { "type": "string", "format": "date-time", "description": "Expiration date for pro subscription." },
+        "freeUsesToday": { "type": "number", "description": "Number of free tools utilized today (resets daily, max 3)." },
+        "lastUsedDate": { "type": "string", "description": "The date (YYYY-MM-DD) when the user last ran a tool." }
+      },
+      "required": ["uid", "email", "subscriptionStatus", "freeUsesToday", "lastUsedDate"]
+    },
+    "UsageLog": {
+      "title": "Usage Log",
+      "description": "Records individual tool usage executions for billing, usage metrics, and limiting.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "toolType": { "type": "string", "enum": ["merge", "split", "compress", "pdf-to-img", "img-to-pdf", "word-to-pdf", "pdf-to-word", "convert-img"] },
+        "fileName": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "toolType", "timestamp"]
+    },
+    "SubscriptionTx": {
+      "title": "Subscription Transaction",
+      "description": "Record of mock payments and subscriptions purchased by SaaS users.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "amount": { "type": "number" },
+        "plan": { "type": "string" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "userEmail", "amount", "plan", "status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Information about each user, their billing status, and usage limit metrics."
+    },
+    "/users/{userId}/usageLogs/{logId}": {
+      "schema": "UsageLog",
+      "description": "Detailed log history of documents processed by this specific user."
+    },
+    "/transactions/{txId}": {
+      "schema": "SubscriptionTx",
+      "description": "Global billing and transaction logs for administrators."
+    }
+  }
+}
